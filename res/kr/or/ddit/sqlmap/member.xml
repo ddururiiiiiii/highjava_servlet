@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+         PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+         "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="member">
+   
+<!-- 
+      이 영역에 sql문에 맞는 태그를 사용하여 SQL문을 기술한다 
+      
+      사용하수있는 기본적인 태그들
+      <select></select>
+      <insert></insert>
+      <upadte></upadte>
+      <delete></delete>
+      
+      위 태그에서 사용되는 속성들
+      
+      1) id속성 : 해당 태그를 호출할때 <sqlMap>태그의 namespace와 연결하여 사용하는 이름
+      
+      2) parameterCalss속성 : sql문에 사용될 데이터가 들어있는 객체를 지정한다
+      (보통 VO클래스,자바의 자료형이름등이 사용된다)
+      (typeAlias로 지정한 alias명을 사용할수 있다)
+      
+      3)resultClass 속성 : select문을 실행한 결과를 담을 객체를 지정한다 
+                  (보통VO클래스나 자바의 자료형이름을 사용한다 )
+ -->
+
+      <insert id="insertMember" parameterClass="kr.or.ddit.member.vo.MemberVO">
+         
+         insert into mymember 
+         (mem_id,mem_name,mem_tel,mem_addr,atch_file_id)
+         values(#memId#,#memName#,#memTel#,#memAddr#, #atchFileId#) <!-- ibatis에 ?속성을 주는 방법 #이름# -->
+         
+      </insert>
+
+
+      <update id="updateMember" parameterClass="kr.or.ddit.member.vo.MemberVO">
+      
+      update mymember 
+            set mem_name = #memName#
+                ,mem_tel = #memTel#
+                ,mem_addr = #memAddr#
+                , atch_file_id = #atchFileId#
+            where mem_id = #memId#
+      
+      </update>
+
+      <delete id="deleteMember" parameterClass="String">
+            
+      delete from mymember where mem_id = #aaa# <!-- 객체일때만 맞춰주고 스트링은 그냥 아무거나 하면 된다 -->
+      
+      
+      </delete>
+   <!-- resultClass를 써서 select하는 방법 (여러개)(1) -->
+   <!-- <select id="getMemberAll" resultClass="kr.or.ddit.member.vo.MemberVO"> 
+      iBatis에게 너가 조회한 쿼리의 결과값을 resultCalss에 넣으면 돼(MemberVO)!라는 뜻 -->
+   <!-- select mem_id as memId
+         ,mem_name as memName
+         ,mem_tel as memTel
+         ,mem_addr as memAddr
+      from mymember -->
+   <!-- </select> -->
+
+      <!-- resultClass를 써서 select하는 방법 (여러개)(2) -->
+      <resultMap class="kr.or.ddit.member.vo.MemberVO" id="memMap"> 
+      
+         <result property="memId" column="mem_id"/>
+         <result property="memName" column="mem_name"/>
+         <result property="memTel" column="mem_tel"/>
+         <result property="memAddr" column="mem_addr"/>
+         <result property="atchFileId" column="atch_file_id"/>
+         
+      </resultMap>
+      
+      <!-- <select id="getMemberAll" resultClass="kr.or.ddit.member.vo.MemberVO"> -->
+                     <!-- 결과를 받아야 하므로 resultClass에다가 주소를 넣어준다  -->
+      <select id="getMemberAll" resultMap="memMap">   
+         select * from mymember 
+      <!-- 일일이 alias를 넣어주기 힘들어서  resultMap정해준다-->   
+      </select>
+
+      
+      
+      <!-- 응답 결과가 1개 -->
+      <select id="getMember" parameterClass="String" resultClass="int">
+      
+      select count(*) as cnt 
+      from mymember where mem_id = #memId#
+      
+      </select>
+
+
+      <select id="getSearchMember" parameterClass="memVO" resultMap="memMap">
+      
+         select * from mymember 
+         where 1=1
+         <isNotEmpty property="memId"> <!-- 다이나믹 쿼리를 운영하는 방법 -->
+             and mem_id =#memId#      <!-- if절 처럼 쓰는 것이다 -->
+         </isNotEmpty>
+         <isNotEmpty property="memName">
+             and mem_name = #memName# 
+         </isNotEmpty>
+         <isNotEmpty property="memTel">
+             and mem_tel = #memTel# 
+         </isNotEmpty>
+         <isNotEmpty property="memAddr">
+             and mem_addr like '%'|| #memAddr# ||'%'       
+         </isNotEmpty>
+      
+      
+      </select>
+      
+      <select id="getMemberInfo" resultMap="memMap">
+         select * from mymember where mem_id = #memId#
+      </select>
+</sqlMap>         
